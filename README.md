@@ -24,10 +24,10 @@
 
 插件同时提供**桌面左下角自适应迷你浮窗**与**右侧辅助边栏面板**两种入口，浅色 / 深色主题自动与客户端或系统同步：
 
-### 1. Windows 桌面迷你置顶浮窗（随 Antigravity 自动启停）
+### 1. 桌面迷你置顶浮窗（Windows & macOS，随 Antigravity 自动启停）
 默认停靠在 Antigravity 左侧导航栏底部空白区域；点击迷你卡片即可向右展开全部模型配额与账号切换面板，也可点击 `钉` 切换为自由拖拽悬浮。
 
-![Windows 桌面自动贴靠浮窗与展开弹窗预览](assets/preview-floating.png)
+![桌面自动贴靠浮窗与展开弹窗预览](assets/preview-floating.png)
 
 ### 2. 右侧辅助边栏面板（全平台通用）
 在对话右上角 **`+`** 菜单中选择 **`模型用量`** 即可打开，开箱即用、无需额外运行环境。
@@ -39,9 +39,9 @@
 <a id="features"></a>
 ## 🎯 双形态功能对比（Dual Surfaces）
 
-| 功能维度 | 右侧辅助边栏面板 (`quota_panel`) | Windows 桌面迷你浮窗 (`quota_floating`) |
+| 功能维度 | 右侧辅助边栏面板 (`quota_panel`) | 桌面迷你浮窗 (`quota_floating`) |
 | :--- | :--- | :--- |
-| **支持平台** | Windows / macOS / Linux 全平台 | Windows（需 Python 3.9+ & `PyQt5`） |
+| **支持平台** | Windows / macOS / Linux 全平台 | **Windows**（Python 3.9+ & `PyQt5`）· **macOS**（原生 Swift `AppKit` + `WKWebView`，自动编译） |
 | **启停方式** | 点击对话右上角 `+` → `模型用量` | **随 Antigravity 自动启动，关闭客户端后自动退出** |
 | **当前模型焦点** | 自动识别当前对话 / 最近选用模型，展示 **5h + 一周用量** | 紧凑迷你卡常驻显示当前模型、思考档位及双进度条 |
 | **全部模型展开** | 点击卡片一键展开全部分组与档位（`Low` ~ `XHigh`） | 左键点击迷你卡，向右弹出「模型配额 \| 账号切换」双页签面板 |
@@ -100,9 +100,17 @@ agy plugin install https://github.com/jibunrock40/antigravity-quota-monitor
 
 ---
 
-### 🖥️ 开启 Windows 桌面迷你浮窗（可选配置）
+### 🖥️ 开启桌面迷你浮窗（Windows & macOS 可选配置）
 
-**右侧辅助边栏面板无需任何额外依赖**即可在所有平台直接工作；若希望同时启用左下角桌面迷你浮窗，仅需在 Windows 安装 `PyQt5`：
+**右侧辅助边栏面板无需任何额外依赖**即可在所有平台直接工作；若希望同时启用左下角桌面迷你浮窗：
+
+#### macOS（原生 AppKit + WKWebView，零 Python / 零系统权限依赖）
+1. 确保本机已安装 Xcode Command Line Tools（大多数开发环境已自带；若未安装，执行 `xcode-select --install`）。
+2. 重启 Antigravity（或在「个性化定制」中重新开关一次插件），后台启动器 `launch.mjs` 会在首次启动时自动使用 `swiftc` 编译并缓存原生浮窗二进制（`~/.gemini/antigravity/sidecar_data/quota-monitor/quota_floating/bin/quota-floating-widget`），**无需辅助功能或屏幕录制权限**，支持跟随全屏 Space、窗口拖拽吸附、遮挡自动避让、自由悬浮与菜单栏图标。
+3. 如需手动独立拉起浮窗，也可运行 `bash widget/start_widget_macos.sh`。
+
+#### Windows（Python + PyQt5）
+安装 `PyQt5`：
 
 ```bash
 pip install -r requirements.txt
@@ -112,8 +120,8 @@ pip install PyQt5
 
 1. 重启 Antigravity（或在「个性化定制」中重新开关一次插件），后台启动器 `launch.mjs` 会自动探测常见 Python / Anaconda / Miniconda / venv 环境中的 `PyQt5` 并拉起浮窗。
 2. 如需指定特定的虚拟环境 Python，可设置环境变量 `ANTIGRAVITY_QUOTA_PYTHON` 指向该环境下的 `pythonw.exe` 或 `python.exe`。
-3. 未安装 `PyQt5` 或在 macOS / Linux 上运行时，启动器会安静跳过，**完全不影响右侧边栏面板使用**。
-4. 如需手动独立调试或拉起浮窗，也可直接运行 `widget\start_widget.vbs`（无黑框静默启动）或 `widget\start_widget.bat`。
+3. 未安装 `PyQt5` / `swiftc` 或在 Linux 上运行时，启动器会安静跳过，**完全不影响右侧边栏面板使用**。
+4. 如需手动独立调试或拉起浮窗，Windows 可直接运行 `widget\start_widget.vbs`（无黑框静默启动）或 `widget\start_widget.bat`。
 
 ---
 
@@ -140,7 +148,7 @@ flowchart LR
     LS["Antigravity Language Server"] -->|"Read-only RPC: RetrieveUserQuotaSummary & GetUserStatus"| Panel["Sidecar: quota_panel (Node.js)"]
     State["transcript.jsonl & antigravity_state.pbtxt"] -->|"Active Model Detection"| Panel
     Panel -->|"Sidecar Web UI (AUX_PANE)"| Sidebar["Right Auxiliary Sidebar Panel"]
-    Panel -->|"runtime.json + localhost /api/quota & /api/accounts"| Widget["Windows Floating Widget (PyQt5)"]
+    Panel -->|"runtime.json + localhost /api/quota & /api/accounts"| Widget["Desktop Floating Widget (Win: PyQt5 / macOS: Swift)"]
     Launcher["Sidecar: quota_floating (launch.mjs)"] -->|"Auto-start & Parent/Window Lifecycle"| Widget
     Panel -->|"Detached Session-1 Worker"| Switcher["switch_worker.mjs"]
     Switcher -->|"OS Keyring + agy CLI + Graceful Restart"| LS
@@ -160,7 +168,7 @@ quota-monitor/
 ├── LICENSE                             # MIT License
 ├── assets/
 │   ├── logo.svg                        # 插件图标
-│   ├── preview-floating.png            # Windows 桌面浮窗预览图
+│   ├── preview-floating.png            # 桌面浮窗预览图
 │   └── preview-sidebar.png             # 右侧边栏面板预览图
 ├── sidecars/
 │   ├── quota_panel/                    # 全平台右侧边栏 Web UI Sidecar + 账号切换后端
@@ -173,14 +181,18 @@ quota-monitor/
 │   │   ├── index.html
 │   │   ├── styles.css
 │   │   └── app.js
-│   └── quota_floating/                 # Windows 桌面浮窗跨环境托管启动器
+│   └── quota_floating/                 # Windows & macOS 桌面浮窗跨环境托管启动器
 │       ├── sidecar.json
 │       ├── package.json
 │       └── launch.mjs
-└── widget/                             # Windows PyQt5 桌面迷你浮窗与手动启动器
-    ├── quota_floating_widget.pyw
+└── widget/                             # 桌面迷你浮窗与手动启动器
+    ├── quota_floating_widget.pyw       # Windows PyQt5 桌面迷你浮窗
     ├── start_widget.vbs
-    └── start_widget.bat
+    ├── start_widget.bat
+    ├── start_widget_macos.sh           # macOS 手动启动脚本
+    └── macos/                          # macOS 原生 Swift (AppKit + WKWebView) 浮窗
+        ├── QuotaFloatingWidget.swift
+        └── widget.html
 ```
 
 ---
@@ -203,7 +215,7 @@ quota-monitor/
 
 ### Overview
 
-**Antigravity Model Quota Monitor** is a local, zero-token-cost quota monitor and multi-account switcher plugin for **Google Antigravity 2.0**. It combines a cross-platform **Right Auxiliary Sidebar Panel** with an optional **Windows Always-On-Top Auto-Docking Desktop Widget**, letting you inspect **5-hour** & **weekly** quotas and switch saved Antigravity accounts in one click.
+**Antigravity Model Quota Monitor** is a local, zero-token-cost quota monitor and multi-account switcher plugin for **Google Antigravity 2.0**. It combines a cross-platform **Right Auxiliary Sidebar Panel** with an optional **Always-On-Top Auto-Docking Desktop Widget (Windows & macOS)**, letting you inspect **5-hour** & **weekly** quotas and switch saved Antigravity accounts in one click.
 
 ### Key Highlights
 
@@ -212,7 +224,7 @@ quota-monitor/
   * **Zero Hardcoded Secrets**: Captures your currently signed-in Antigravity credential snapshot directly from the OS credential store (`gemini:antigravity` on Windows Credential Manager, macOS Keychain, or Linux Secret Service) into a local vault (`0600`).
   * **Import / Export & `agy-switch` Migration**: One-click import from `~/.antigravity_tools` (`ABV_DATA_DIR`) as well as JSON backup export/restore.
   * **Safe Detached Restart**: Spawns a process-tree-detached worker (`Schedule.Service` interactive Session-1 handoff on Windows) that gracefully closes Antigravity (and shared-login IDE 2.6+), recovers corrupt all-zero `antigravity_state.pbtxt` files if detected, writes the target credential and initialized `agy` CLI session (`~/.gemini/antigravity-cli/antigravity-oauth-token`), and relaunches Antigravity.
-* **Windows Floating Mini Widget (`quota_floating`, Optional)**: Auto-starts and exits with Antigravity, docks into the bottom-left sidebar area (or switches to draggable `浮` mode), and provides a tabbed `模型配额 | 账号切换` popover plus tray/context quick-switch menus.
+* **Floating Mini Widget (`quota_floating`, Windows & macOS, Optional)**: Auto-starts and exits with Antigravity, docks into the bottom-left sidebar area (or switches to draggable `浮` mode), and provides a tabbed `模型配额 | 账号切换` popover plus tray/menu-bar quick-switch menus.
 * **Strictly Local & Zero Token Cost**: Queries local Language Server Connect-RPC endpoints (`RetrieveUserQuotaSummary` & `GetUserStatus`) over `127.0.0.1` with a 10s cache—consuming **0 LLM tokens**.
 
 ### Quick Install
@@ -232,16 +244,19 @@ git clone https://github.com/jibunrock40/antigravity-quota-monitor.git "$env:USE
 
 * **Option 3 (ZIP)**: Download the repository archive, rename the extracted folder to `quota-monitor`, and place it under `~/.gemini/config/plugins/quota-monitor/` (Windows: `%USERPROFILE%\.gemini\config\plugins\quota-monitor\`).
 
-#### Enable the Optional Windows Floating Widget
+#### Enable the Optional Desktop Floating Widget (Windows & macOS)
 
-The right-sidebar panel requires zero extra dependencies. To also enable the Windows desktop mini widget:
+The right-sidebar panel requires zero extra dependencies.
+
+- **macOS (Native Swift `AppKit` + `WKWebView`)**: Requires Xcode Command Line Tools (`xcode-select --install`, usually pre-installed). On first launch, `launch.mjs` automatically compiles and caches the native widget binary with **zero Accessibility or Screen Recording permissions required**. Run `bash widget/start_widget_macos.sh` to start manually.
+- **Windows (`PyQt5`)**:
 
 ```bash
 pip install -r requirements.txt
 # or: pip install PyQt5
 ```
 
-Restart Antigravity (or toggle the plugin once in Customizations). If your `PyQt5` lives inside a custom virtual environment, point `ANTIGRAVITY_QUOTA_PYTHON` to its `pythonw.exe`. On macOS/Linux or systems without `PyQt5`, `launch.mjs` exits cleanly with code `0` so the sidebar panel remains completely unaffected.
+Restart Antigravity (or toggle the plugin once in Customizations). On Windows, if your `PyQt5` lives inside a custom virtual environment, point `ANTIGRAVITY_QUOTA_PYTHON` to its `pythonw.exe`. On Linux or systems without the widget prerequisites, `launch.mjs` exits cleanly with code `0` so the sidebar panel remains completely unaffected.
 
 ### License
 

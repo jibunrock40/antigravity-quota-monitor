@@ -1,0 +1,1320 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Antigravity Quota</title>
+  <style>
+    :root {
+      --card-bg: #ffffff;
+      --card-alt: #f3f4f6;
+      --fg: #18181b;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --track: #e5e7eb;
+      --accent: #2563eb;
+      --accent-soft: rgba(37, 99, 235, 0.12);
+      --accent-fg: #ffffff;
+      --green: #16a34a;
+      --amber: #d97706;
+      --red: #dc2626;
+      --hover: rgba(24, 24, 27, 0.06);
+      --shadow-docked: 0 2px 6px rgba(15, 23, 42, 0.14), 0 4px 10px rgba(15, 23, 42, 0.08);
+      --shadow-float: 0 3px 8px rgba(15, 23, 42, 0.20), 0 6px 14px rgba(15, 23, 42, 0.12);
+      --shadow-popover: 0 4px 12px rgba(15, 23, 42, 0.18), 0 8px 18px rgba(15, 23, 42, 0.10);
+    }
+
+    :root[data-theme="dark"] {
+      --card-bg: #21242a;
+      --card-alt: #282c34;
+      --fg: #f3f4f6;
+      --muted: #9ca3af;
+      --border: #2f343e;
+      --track: #323741;
+      --accent: #3b82f6;
+      --accent-soft: rgba(59, 130, 246, 0.20);
+      --accent-fg: #ffffff;
+      --green: #22c55e;
+      --amber: #f59e0b;
+      --red: #ef4444;
+      --hover: rgba(255, 255, 255, 0.08);
+      --shadow-docked: 0 2px 6px rgba(0, 0, 0, 0.42), 0 4px 10px rgba(0, 0, 0, 0.28);
+      --shadow-float: 0 3px 8px rgba(0, 0, 0, 0.54), 0 6px 14px rgba(0, 0, 0, 0.36);
+      --shadow-popover: 0 4px 12px rgba(0, 0, 0, 0.56), 0 8px 18px rgba(0, 0, 0, 0.38);
+    }
+
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: transparent !important;
+      color: var(--fg);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Helvetica Neue", sans-serif;
+      font-size: 12px;
+      line-height: 1.35;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button {
+      font: inherit;
+      color: inherit;
+      cursor: pointer;
+      outline: none;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .stage {
+      padding: 10px;
+      display: inline-block;
+      background: transparent;
+    }
+
+    /* ---------------- Mini Card ---------------- */
+    .mini-surface {
+      width: 220px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      padding: 9px 10px 8px;
+      box-shadow: var(--shadow-docked);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      cursor: pointer;
+    }
+
+    .mini-surface.is-float {
+      border-color: var(--accent);
+      box-shadow: var(--shadow-float);
+    }
+
+    .mini-head {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      min-width: 0;
+    }
+
+    .grip {
+      color: var(--muted);
+      font-size: 11px;
+      letter-spacing: -1px;
+      flex-shrink: 0;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 4px;
+      background: var(--accent);
+      flex-shrink: 0;
+    }
+
+    .dot.amber { background: var(--amber); }
+    .dot.red { background: var(--red); }
+
+    .mini-model {
+      flex: 1;
+      min-width: 0;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--fg);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .tier-pill {
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-radius: 4px;
+      padding: 1px 5px;
+      font-size: 11px;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .dock-btn {
+      width: 20px;
+      height: 18px;
+      padding: 0;
+      border: none;
+      border-radius: 4px;
+      background: var(--card-alt);
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .dock-btn:hover {
+      background: var(--hover);
+      color: var(--fg);
+    }
+
+    .mini-status {
+      color: var(--muted);
+      font-size: 11.5px;
+      line-height: 1.4;
+      word-break: break-word;
+    }
+
+    .meter {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .meter-top {
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .meter-title {
+      color: var(--muted);
+      font-size: 11.5px;
+      font-weight: 500;
+    }
+
+    .meter-spacer {
+      flex: 1;
+    }
+
+    .meter-val {
+      color: var(--fg);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .meter-cd {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .bar-track {
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: var(--track);
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      background: var(--green);
+      transition: width 180ms ease;
+    }
+
+    .bar-fill.green { background: var(--green); }
+    .bar-fill.amber { background: var(--amber); }
+    .bar-fill.red { background: var(--red); }
+
+    .mini-note {
+      background: var(--card-alt);
+      color: var(--muted);
+      border-radius: 5px;
+      padding: 3px 7px;
+      font-size: 11px;
+    }
+
+    .divider {
+      height: 1px;
+      background: var(--border);
+    }
+
+    .mini-foot {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding-top: 1px;
+    }
+
+    .mini-hint {
+      color: var(--muted);
+      font-size: 11px;
+      flex: 1;
+    }
+
+    .mini-chevron {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    /* ---------------- Popover ---------------- */
+    .popover-surface {
+      width: 332px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+      box-shadow: var(--shadow-popover);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .pop-head {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .pop-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--fg);
+      white-space: nowrap;
+    }
+
+    .plan-pill {
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-radius: 4px;
+      padding: 1px 6px;
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .head-spacer {
+      flex: 1;
+    }
+
+    .head-btn {
+      background: var(--card-alt);
+      color: var(--muted);
+      border: none;
+      border-radius: 5px;
+      padding: 2px 7px;
+      font-size: 11px;
+      font-weight: 500;
+      height: 20px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .head-btn:hover {
+      background: var(--hover);
+      color: var(--fg);
+    }
+
+    .head-btn.close-btn {
+      width: 22px;
+      padding: 0;
+      font-size: 14px;
+    }
+
+    .tab-bar {
+      background: var(--card-alt);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 3px;
+      display: flex;
+      gap: 4px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      border-radius: 5px;
+      padding: 3px 8px;
+      font-size: 11.5px;
+      font-weight: 500;
+    }
+
+    .tab-btn:hover {
+      color: var(--fg);
+    }
+
+    .tab-btn.active {
+      background: var(--card-bg);
+      color: var(--fg);
+      font-weight: 600;
+    }
+
+    .pop-scroll {
+      max-height: 460px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding-right: 1px;
+    }
+
+    .pop-scroll::-webkit-scrollbar {
+      width: 5px;
+    }
+
+    .pop-scroll::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 3px;
+    }
+
+    .group-card, .account-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 8px 9px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .group-card.is-current, .account-card.is-current {
+      border-color: var(--accent);
+    }
+
+    .account-card.is-confirming {
+      border-color: var(--amber);
+    }
+
+    .group-top, .acc-top {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .group-name, .acc-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--fg);
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .group-count {
+      color: var(--muted);
+      font-size: 11px;
+      flex-shrink: 0;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 4px;
+      padding: 1px 5px;
+      font-size: 11px;
+      font-weight: 500;
+      flex-shrink: 0;
+    }
+
+    .pill.accent-soft {
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .pill.accent-solid {
+      background: var(--accent);
+      color: var(--accent-fg);
+      font-weight: 600;
+    }
+
+    .pill.muted {
+      background: var(--card-alt);
+      color: var(--muted);
+    }
+
+    .pill.amber {
+      background: var(--card-alt);
+      color: var(--amber);
+      font-weight: 600;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .cell-missing {
+      background: var(--card-alt);
+      color: var(--muted);
+      border-radius: 5px;
+      padding: 4px 6px;
+      font-size: 11px;
+      text-align: center;
+    }
+
+    .cell-row {
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+      font-variant-numeric: tabular-nums;
+      margin-bottom: 3px;
+    }
+
+    .cell-label { color: var(--muted); font-size: 11px; }
+    .cell-val { color: var(--fg); font-size: 11.5px; font-weight: 600; }
+    .cell-cd { color: var(--muted); font-size: 10.5px; }
+
+    .chips-flow {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .active-card {
+      background: var(--card-alt);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 8px 9px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .active-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+    }
+
+    .active-title {
+      flex: 1;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--fg);
+      word-break: break-all;
+    }
+
+    .btn-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: var(--accent-fg);
+      border: none;
+      border-radius: 5px;
+      padding: 4px 8px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.55;
+      cursor: default;
+    }
+
+    .btn-secondary {
+      background: var(--card-bg);
+      color: var(--fg);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 4px 8px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background: var(--hover);
+    }
+
+    .btn-secondary:disabled {
+      opacity: 0.55;
+      cursor: default;
+    }
+
+    .sw-btn {
+      background: var(--accent);
+      color: var(--accent-fg);
+      border: none;
+      border-radius: 4px;
+      padding: 2px 8px;
+      font-size: 11px;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .sw-btn:disabled {
+      background: var(--card-alt);
+      color: var(--muted);
+      cursor: default;
+    }
+
+    .acc-email-sub {
+      color: var(--muted);
+      font-size: 10.5px;
+      word-break: break-all;
+    }
+
+    .confirm-box {
+      background: var(--card-alt);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 6px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .confirm-warn {
+      color: var(--amber);
+      font-size: 11px;
+      line-height: 1.35;
+    }
+
+    .confirm-btns {
+      display: flex;
+      justify-content: flex-end;
+      gap: 6px;
+    }
+
+    .banner {
+      background: var(--card-alt);
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      border-radius: 7px;
+      padding: 6px 8px;
+      font-size: 11px;
+      word-break: break-word;
+    }
+
+    .banner.error { border-color: var(--red); color: var(--red); }
+    .banner.success { border-color: var(--green); color: var(--green); }
+
+    .empty-msg {
+      color: var(--muted);
+      font-size: 11.5px;
+      padding: 10px;
+      background: var(--card-alt);
+      border-radius: 8px;
+    }
+
+    .pop-foot {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding-top: 2px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .pop-foot-note { flex: 1; }
+  </style>
+</head>
+<body>
+  <div id="stage" class="stage">
+    <!-- Mini View -->
+    <div id="mini-surface" class="mini-surface hidden">
+      <div class="mini-head">
+        <span id="mini-grip" class="grip hidden" title="按住可拖拽悬浮位置">::</span>
+        <span id="mini-dot" class="dot"></span>
+        <span id="mini-model" class="mini-model">加载中...</span>
+        <span id="mini-tier" class="tier-pill hidden"></span>
+        <button id="dock-btn" type="button" class="dock-btn" title="切换 吸附左下角 / 自由悬浮">钉</button>
+      </div>
+      <div id="mini-status" class="mini-status">正在连接本地配额服务...</div>
+      <div id="mini-fh" class="meter hidden" data-meter="fh">
+        <div class="meter-top">
+          <span class="meter-title">5h</span>
+          <span class="meter-spacer"></span>
+          <span id="mini-fh-val" class="meter-val">--</span>
+          <span id="mini-fh-cd" class="meter-cd"></span>
+        </div>
+        <div class="bar-track"><div id="mini-fh-bar" class="bar-fill"></div></div>
+      </div>
+      <div id="mini-fh-note" class="mini-note hidden">5h: 仅周限额</div>
+      <div id="mini-wk" class="meter hidden" data-meter="wk">
+        <div class="meter-top">
+          <span class="meter-title">1周</span>
+          <span class="meter-spacer"></span>
+          <span id="mini-wk-val" class="meter-val">--</span>
+          <span id="mini-wk-cd" class="meter-cd"></span>
+        </div>
+        <div class="bar-track"><div id="mini-wk-bar" class="bar-fill"></div></div>
+      </div>
+      <div class="divider"></div>
+      <div class="mini-foot">
+        <span id="mini-hint" class="mini-hint">点击展开全部模型</span>
+        <span id="mini-chevron" class="mini-chevron">&gt;</span>
+      </div>
+    </div>
+
+    <!-- Popover View -->
+    <div id="popover-surface" class="popover-surface hidden">
+      <div class="pop-head">
+        <span class="pop-title">模型与账号</span>
+        <span id="pop-plan" class="plan-pill hidden"></span>
+        <span class="head-spacer"></span>
+        <button id="pop-mode-btn" type="button" class="head-btn" title="点击切换 已用 / 剩余 显示">已用视角</button>
+        <button id="pop-refresh-btn" type="button" class="head-btn" title="立即刷新配额与账号状态">刷新</button>
+        <button id="pop-close-btn" type="button" class="head-btn close-btn" title="收起 (Esc)">×</button>
+      </div>
+      <div class="tab-bar">
+        <button id="tab-quota" type="button" class="tab-btn active">模型配额</button>
+        <button id="tab-accounts" type="button" class="tab-btn">账号切换 (0)</button>
+      </div>
+      <div id="pop-scroll" class="pop-scroll"></div>
+      <div class="pop-foot">
+        <span id="pop-foot-note" class="pop-foot-note">同组模型共享 5h 与一周配额</span>
+        <span id="pop-foot-time"></span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      const SHADOW_MARGIN = 10;
+      const TIER_SUFFIX_RE = /\s*\((Low|Medium|High|XHigh|Extra High|Minimal)\)\s*$/i;
+      const params = new URLSearchParams(window.location.search);
+      const VIEW = params.get('view') === 'popover' ? 'popover' : 'mini';
+
+      const stage = document.getElementById('stage');
+      const miniSurface = document.getElementById('mini-surface');
+      const popoverSurface = document.getElementById('popover-surface');
+
+      if (VIEW === 'mini') {
+        miniSurface.classList.remove('hidden');
+      } else {
+        popoverSurface.classList.remove('hidden');
+      }
+
+      const state = {
+        theme: 'light',
+        mode: 'used',
+        dock: 'docked',
+        expanded: false,
+        activeTab: 'quota',
+        payload: null,
+        accountsData: null,
+        errorMsg: null,
+        actionBanner: null,
+        busyAction: null,
+        confirmSwitchAcc: null,
+        maxScrollHeight: 460,
+      };
+
+      function postBridge(payload) {
+        try {
+          if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.bridge) {
+            window.webkit.messageHandlers.bridge.postMessage(payload);
+          }
+        } catch (_) {}
+      }
+
+      let lastReportedW = 0;
+      let lastReportedH = 0;
+      function reportSize() {
+        const surf = VIEW === 'mini' ? miniSurface : popoverSurface;
+        const w = Math.ceil(surf.offsetWidth) + SHADOW_MARGIN * 2;
+        const h = Math.ceil(surf.offsetHeight) + SHADOW_MARGIN * 2;
+        if (w > 0 && h > 0 && (w !== lastReportedW || h !== lastReportedH)) {
+          lastReportedW = w;
+          lastReportedH = h;
+          postBridge({ type: 'resize', view: VIEW, width: w, height: h });
+        }
+      }
+
+      if (typeof ResizeObserver !== 'undefined') {
+        const ro = new ResizeObserver(() => reportSize());
+        ro.observe(VIEW === 'mini' ? miniSurface : popoverSurface);
+      }
+
+      function fmtPct(v) {
+        if (typeof v !== 'number' || Number.isNaN(v)) return '--';
+        if (Math.abs(v - Math.round(v)) < 0.05) return `${Math.round(v)}%`;
+        return `${v.toFixed(1)}%`;
+      }
+
+      function fmtShortCountdown(resetMs) {
+        if (typeof resetMs !== 'number' || Number.isNaN(resetMs)) return '';
+        const diff = resetMs - Date.now();
+        if (diff <= 0) return '即将重置';
+        const totalMin = Math.floor(diff / 60000);
+        if (totalMin < 1) return '<1m';
+        const days = Math.floor(totalMin / 1440);
+        const hours = Math.floor((totalMin % 1440) / 60);
+        const mins = totalMin % 60;
+        if (days > 0) return `${days}d${hours}h`;
+        if (hours > 0) return `${hours}h${mins}m`;
+        return `${mins}m`;
+      }
+
+      function fmtFullResetTime(resetMs) {
+        if (typeof resetMs !== 'number' || Number.isNaN(resetMs)) return '';
+        const d = new Date(resetMs);
+        const pad = (n) => String(n).padStart(2, '0');
+        return `预计重置时间: ${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+      }
+
+      function fmtRelativeUpdated(fetchedAt) {
+        if (typeof fetchedAt !== 'number' || Number.isNaN(fetchedAt)) return '尚未更新';
+        const sec = Math.max(0, Math.floor((Date.now() - fetchedAt) / 1000));
+        if (sec < 10) return '刚刚更新';
+        if (sec < 60) return `${sec}秒前更新`;
+        const mins = Math.floor(sec / 60);
+        if (mins < 60) return `${mins}分钟前更新`;
+        const d = new Date(fetchedAt);
+        const pad = (n) => String(n).padStart(2, '0');
+        return `${pad(d.getHours())}:${pad(d.getMinutes())} 更新`;
+      }
+
+      function splitModelShortAndTier(label) {
+        const text = (label || '').trim() || '未知模型';
+        const m = TIER_SUFFIX_RE.exec(text);
+        if (!m) return [text, ''];
+        return [text.slice(0, m.index).trim(), m[1]];
+      }
+
+      function shortFamilyChipName(familyName) {
+        const name = (familyName || '').trim();
+        for (const prefix of ['Gemini 4 ', 'Gemini 3.8 ', 'Gemini ', 'Claude ']) {
+          if (name.startsWith(prefix) && name.length > prefix.length) {
+            return name.slice(prefix.length);
+          }
+        }
+        return name;
+      }
+
+      function toneClass(usedPct) {
+        if (usedPct >= 85) return 'red';
+        if (usedPct >= 60) return 'amber';
+        return 'green';
+      }
+
+      function el(tag, className, text) {
+        const node = document.createElement(tag);
+        if (className) node.className = className;
+        if (text !== undefined && text !== null) node.textContent = String(text);
+        return node;
+      }
+
+      function notifyInteractionState() {
+        if (VIEW !== 'popover') return;
+        const active = state.activeTab === 'accounts' && (state.confirmSwitchAcc !== null || state.busyAction !== null);
+        postBridge({ type: 'interactionState', active });
+      }
+
+      function renderMini() {
+        const isFloat = state.dock === 'float';
+        miniSurface.classList.toggle('is-float', isFloat);
+        document.getElementById('mini-grip').classList.toggle('hidden', !isFloat);
+        document.getElementById('dock-btn').textContent = isFloat ? '浮' : '钉';
+        document.getElementById('mini-hint').textContent = state.expanded ? '点击收起全部模型' : '点击展开全部模型';
+        document.getElementById('mini-chevron').textContent = state.expanded ? '<' : '>';
+
+        const dot = document.getElementById('mini-dot');
+        const modelEl = document.getElementById('mini-model');
+        const tierEl = document.getElementById('mini-tier');
+        const statusEl = document.getElementById('mini-status');
+        const fhEl = document.getElementById('mini-fh');
+        const fhNoteEl = document.getElementById('mini-fh-note');
+        const wkEl = document.getElementById('mini-wk');
+
+        const payload = state.payload;
+        const hasGroups = Boolean(payload && Array.isArray(payload.groups) && payload.groups.length > 0);
+        if (!hasGroups) {
+          dot.className = 'dot ' + (state.errorMsg ? 'red' : 'amber');
+          modelEl.textContent = 'Antigravity 用量';
+          modelEl.title = '';
+          tierEl.classList.add('hidden');
+          fhEl.classList.add('hidden');
+          fhNoteEl.classList.add('hidden');
+          wkEl.classList.add('hidden');
+          statusEl.classList.remove('hidden');
+          statusEl.textContent = state.errorMsg ? '等待 Antigravity 连接...' : '正在获取配额信息...';
+          requestAnimationFrame(reportSize);
+          return;
+        }
+
+        statusEl.classList.add('hidden');
+        const stale = Boolean(payload.stale || state.errorMsg);
+        dot.className = 'dot' + (stale ? ' amber' : '');
+
+        const cur = payload.current || {};
+        const fullLabel = cur.label || '当前模型';
+        const [shortName, tier] = splitModelShortAndTier(fullLabel);
+        modelEl.textContent = shortName;
+        modelEl.title = `${fullLabel} (${cur.groupName || ''})`;
+
+        if (tier) {
+          tierEl.textContent = tier;
+          tierEl.classList.remove('hidden');
+        } else {
+          tierEl.classList.add('hidden');
+        }
+
+        const isUsed = state.mode === 'used';
+        function bindMeter(bucket, box, note, valId, cdId, barId, isFiveHour) {
+          if (!bucket) {
+            box.classList.add('hidden');
+            if (note && isFiveHour) note.classList.remove('hidden');
+            return;
+          }
+          if (note) note.classList.add('hidden');
+          box.classList.remove('hidden');
+          const used = Number(bucket.usedPercent || 0);
+          const rem = bucket.remainingPercent !== undefined && bucket.remainingPercent !== null
+            ? Number(bucket.remainingPercent)
+            : Math.max(0, 100 - used);
+          const val = isUsed ? used : rem;
+          const prefix = isUsed ? '已用' : '剩余';
+          document.getElementById(valId).textContent = `${prefix} ${fmtPct(val)}`;
+          document.getElementById(cdId).textContent = fmtShortCountdown(bucket.resetMs);
+          box.title = fmtFullResetTime(bucket.resetMs);
+          const bar = document.getElementById(barId);
+          bar.style.width = `${Math.max(0, Math.min(100, val))}%`;
+          bar.className = `bar-fill ${toneClass(used)}`;
+        }
+
+        bindMeter(cur.fiveHour, fhEl, fhNoteEl, 'mini-fh-val', 'mini-fh-cd', 'mini-fh-bar', true);
+        bindMeter(cur.weekly, wkEl, null, 'mini-wk-val', 'mini-wk-cd', 'mini-wk-bar', false);
+        requestAnimationFrame(reportSize);
+      }
+
+      function buildBucketCell(label, bucket, missingText) {
+        const cell = el('div');
+        if (!bucket) {
+          cell.appendChild(el('div', 'cell-missing', missingText));
+          return cell;
+        }
+        const used = Number(bucket.usedPercent || 0);
+        const rem = bucket.remainingPercent !== undefined && bucket.remainingPercent !== null
+          ? Number(bucket.remainingPercent)
+          : Math.max(0, 100 - used);
+        const val = state.mode === 'used' ? used : rem;
+        const cd = fmtShortCountdown(bucket.resetMs);
+
+        const row = el('div', 'cell-row');
+        row.appendChild(el('span', 'cell-label', label));
+        row.appendChild(el('span', 'meter-spacer'));
+        row.appendChild(el('span', 'cell-val', fmtPct(val)));
+        if (cd) row.appendChild(el('span', 'cell-cd', cd));
+        cell.appendChild(row);
+
+        const track = el('div', 'bar-track');
+        const fill = el('div', `bar-fill ${toneClass(used)}`);
+        fill.style.width = `${Math.max(0, Math.min(100, val))}%`;
+        track.appendChild(fill);
+        cell.appendChild(track);
+
+        const tip = fmtFullResetTime(bucket.resetMs);
+        if (tip) cell.title = `已用 ${fmtPct(used)} · 剩余 ${fmtPct(rem)}\n${tip}`;
+        return cell;
+      }
+
+      function renderQuotaTab(container) {
+        if (!state.payload || !Array.isArray(state.payload.groups) || state.payload.groups.length === 0) {
+          container.appendChild(el('div', 'empty-msg', '暂未获取到配额数据'));
+          return;
+        }
+        for (const g of state.payload.groups) {
+          const isCur = Boolean(g.isCurrentGroup);
+          const card = el('div', 'group-card' + (isCur ? ' is-current' : ''));
+          const top = el('div', 'group-top');
+          top.appendChild(el('span', 'group-name', g.displayName || 'Model Group'));
+          if (isCur) top.appendChild(el('span', 'pill accent-soft', '当前'));
+          top.appendChild(el('span', 'group-count', `${g.modelCount || 0} 模型`));
+          card.appendChild(top);
+
+          const grid = el('div', 'grid-2');
+          grid.appendChild(buildBucketCell('5h', g.fiveHour, '5h: 仅周限额'));
+          grid.appendChild(buildBucketCell('1周', g.weekly, '暂无周限额'));
+          card.appendChild(grid);
+
+          const families = g.families || [];
+          if (families.length > 0) {
+            const flow = el('div', 'chips-flow');
+            for (const fam of families) {
+              const famName = fam.name || '';
+              const shortName = shortFamilyChipName(famName);
+              const variants = fam.variants || [];
+              const tiers = variants.map((v) => v.tierLabel).filter(Boolean);
+              const curVar = variants.find((v) => v.isCurrent);
+              const chipText = curVar && curVar.tierLabel ? `${shortName} (${curVar.tierLabel})` : shortName;
+              const isCurFam = Boolean(fam.hasCurrent);
+              const chip = el('span', 'pill ' + (isCurFam ? 'accent-solid' : 'muted'), chipText);
+              chip.title = tiers.length ? `${famName}: ${tiers.join(' / ')}` : famName;
+              flow.appendChild(chip);
+            }
+            card.appendChild(flow);
+          }
+          container.appendChild(card);
+        }
+      }
+
+      function renderAccountsTab(container) {
+        const accData = state.accountsData || {};
+        const accounts = accData.accounts || [];
+        const live = accData.liveAccount || (state.payload && state.payload.account) || {};
+        const liveEmail = live.email || '';
+        const currentSaved = accounts.find((a) => a.isCurrent);
+
+        const activeCard = el('div', 'active-card');
+        const activeRow = el('div', 'active-row');
+        const activeTitleText = currentSaved && currentSaved.remark
+          ? `${currentSaved.remark} (${currentSaved.email})`
+          : (currentSaved ? currentSaved.email : (liveEmail || '未检测到在线账号'));
+        activeRow.appendChild(el('div', 'active-title', activeTitleText));
+        if (currentSaved) {
+          activeRow.appendChild(el('span', 'pill accent-soft', currentSaved.tier || '已保存'));
+        } else if (liveEmail) {
+          activeRow.appendChild(el('span', 'pill muted', '未保存'));
+        }
+        activeCard.appendChild(activeRow);
+
+        const btnRow = el('div', 'btn-row');
+        const saveBtn = el('button', 'btn-primary', currentSaved ? '更新当前凭据' : '保存当前账号');
+        saveBtn.type = 'button';
+        saveBtn.disabled = state.busyAction !== null;
+        saveBtn.addEventListener('click', () => postBridge({ type: 'captureAccount' }));
+        btnRow.appendChild(saveBtn);
+
+        const agyCnt = Number(accData.agySwitchCount || 0);
+        const impBtn = el('button', 'btn-secondary', agyCnt > 0 ? `导入 agy-switch (${agyCnt})` : '导入 agy-switch');
+        impBtn.type = 'button';
+        impBtn.disabled = state.busyAction !== null;
+        impBtn.addEventListener('click', () => postBridge({ type: 'importAgySwitch' }));
+        btnRow.appendChild(impBtn);
+        activeCard.appendChild(btnRow);
+        container.appendChild(activeCard);
+
+        let banner = state.actionBanner;
+        if (!banner) {
+          const swStatus = accData.switchStatus || {};
+          if (swStatus.state === 'failed' && swStatus.error) {
+            banner = { kind: 'error', text: `上次切换失败: ${swStatus.error}` };
+          }
+        }
+        if (banner && banner.text) {
+          container.appendChild(el('div', `banner ${banner.kind || ''}`, banner.text));
+        }
+
+        const confirmId = (state.confirmSwitchAcc && state.confirmSwitchAcc.id) || '';
+        const locked = Boolean(accData.switchLocked) || state.busyAction === 'switch';
+        let confirmEl = null;
+
+        if (!accounts.length) {
+          container.appendChild(el('div', 'empty-msg', '暂无已保存账号。点击上方「保存当前账号」或导入 agy-switch 数据。'));
+        } else {
+          for (const acc of accounts) {
+            const isCur = Boolean(acc.isCurrent);
+            const hasCred = Boolean(acc.hasCredential);
+            const isConfirming = Boolean(confirmId && acc.id === confirmId);
+            const card = el(
+              'div',
+              'account-card' + (isConfirming ? ' is-confirming' : (isCur ? ' is-current' : ''))
+            );
+            const top = el('div', 'acc-top');
+            const nameEl = el('span', 'acc-name', acc.remark || acc.email || '');
+            nameEl.title = acc.email || '';
+            top.appendChild(nameEl);
+            if (acc.tier) top.appendChild(el('span', 'pill muted', acc.tier));
+            if (isCur) {
+              top.appendChild(el('span', 'pill accent-soft', '当前'));
+            } else if (isConfirming) {
+              top.appendChild(el('span', 'pill amber', '待确认'));
+            } else {
+              const swBtn = el('button', 'sw-btn', state.busyAction === 'switch' ? '切换中...' : '切换');
+              swBtn.type = 'button';
+              swBtn.disabled = !hasCred || locked;
+              swBtn.addEventListener('click', () => {
+                state.actionBanner = null;
+                state.confirmSwitchAcc = acc;
+                notifyInteractionState();
+                renderPopover();
+              });
+              top.appendChild(swBtn);
+            }
+            card.appendChild(top);
+
+            if (acc.remark && acc.email) {
+              card.appendChild(el('div', 'acc-email-sub', acc.email));
+            }
+
+            if (isConfirming) {
+              const box = el('div', 'confirm-box');
+              box.appendChild(el('div', 'confirm-warn', '将关闭并重启 Antigravity（同步更新 agy CLI），进行中的任务不会迁移。'));
+              const cBtns = el('div', 'confirm-btns');
+              const cancelB = el('button', 'btn-secondary', '取消');
+              cancelB.type = 'button';
+              cancelB.addEventListener('click', () => {
+                state.confirmSwitchAcc = null;
+                notifyInteractionState();
+                renderPopover();
+              });
+              const okB = el('button', 'btn-primary', '确认重启切换');
+              okB.type = 'button';
+              okB.disabled = locked;
+              okB.addEventListener('click', () => {
+                const tid = acc.id || '';
+                state.confirmSwitchAcc = null;
+                notifyInteractionState();
+                renderPopover();
+                if (tid) postBridge({ type: 'switchAccount', id: tid });
+              });
+              cBtns.appendChild(cancelB);
+              cBtns.appendChild(okB);
+              box.appendChild(cBtns);
+              card.appendChild(box);
+              confirmEl = card;
+            }
+
+            const groups = (acc.lastQuota && acc.lastQuota.groups) || [];
+            if (groups.length > 0) {
+              const flow = el('div', 'chips-flow');
+              const isUsed = state.mode === 'used';
+              for (const grp of groups.slice(0, 3)) {
+                const fh = isUsed ? grp.fiveHourUsed : grp.fiveHourRemaining;
+                const wk = isUsed ? grp.weeklyUsed : grp.weeklyRemaining;
+                const parts = [];
+                if (typeof fh === 'number') parts.push(`5h ${fmtPct(fh)}`);
+                if (typeof wk === 'number') parts.push(`周 ${fmtPct(wk)}`);
+                if (!parts.length) continue;
+                let gShort = shortFamilyChipName(grp.displayName || 'Group');
+                const low = gShort.toLowerCase();
+                if (low.includes('claude') || low.includes('gpt')) {
+                  gShort = 'Claude/GPT';
+                } else if ((grp.displayName || '').toLowerCase().includes('gemini') && !(grp.displayName || '').toLowerCase().includes('argon')) {
+                  gShort = 'Gemini';
+                }
+                flow.appendChild(el('span', 'pill muted', `${gShort} ${parts.join(' / ')}`));
+              }
+              card.appendChild(flow);
+            }
+
+            container.appendChild(card);
+          }
+        }
+
+        if (confirmEl) {
+          requestAnimationFrame(() => {
+            try { confirmEl.scrollIntoView({ block: 'nearest' }); } catch (_) {}
+          });
+        }
+      }
+
+      function renderPopover(timestampsOnly = false) {
+        const planBadge = document.getElementById('pop-plan');
+        const footTime = document.getElementById('pop-foot-time');
+        const modeBtn = document.getElementById('pop-mode-btn');
+        const tabQuotaBtn = document.getElementById('tab-quota');
+        const tabAccBtn = document.getElementById('tab-accounts');
+        const footNote = document.getElementById('pop-foot-note');
+        const scrollEl = document.getElementById('pop-scroll');
+
+        scrollEl.style.maxHeight = `${Math.max(220, Math.min(460, state.maxScrollHeight || 460))}px`;
+        modeBtn.textContent = state.mode === 'used' ? '已用视角' : '剩余视角';
+        const accCount = ((state.accountsData && state.accountsData.accounts) || []).length;
+        tabAccBtn.textContent = `账号切换 (${accCount})`;
+        tabQuotaBtn.classList.toggle('active', state.activeTab === 'quota');
+        tabAccBtn.classList.toggle('active', state.activeTab === 'accounts');
+
+        if (state.payload) {
+          const planName = (state.payload.tier && (state.payload.tier.planName || state.payload.tier.name)) || '';
+          if (planName) {
+            planBadge.textContent = planName;
+            planBadge.classList.remove('hidden');
+          } else {
+            planBadge.classList.add('hidden');
+          }
+          footTime.textContent = fmtRelativeUpdated(state.payload.fetchedAt);
+        } else {
+          planBadge.classList.add('hidden');
+          footTime.textContent = '';
+        }
+
+        if (timestampsOnly) {
+          return;
+        }
+
+        const prevScrollTop = scrollEl.scrollTop;
+        scrollEl.innerHTML = '';
+        if (state.activeTab === 'accounts') {
+          footNote.textContent = '纯本地快照 · 切换将重启 Antigravity';
+          renderAccountsTab(scrollEl);
+        } else {
+          footNote.textContent = '同组模型共享 5h 与一周配额';
+          renderQuotaTab(scrollEl);
+        }
+        scrollEl.scrollTop = prevScrollTop;
+        requestAnimationFrame(reportSize);
+      }
+
+      function applyState(next) {
+        if (!next || typeof next !== 'object') return;
+        const passive = Boolean(next.passiveTimestampsOnly);
+        if (next.theme === 'light' || next.theme === 'dark') {
+          state.theme = next.theme;
+          document.documentElement.dataset.theme = next.theme;
+        }
+        if (next.mode === 'used' || next.mode === 'remaining') state.mode = next.mode;
+        if (next.dock === 'docked' || next.dock === 'float') state.dock = next.dock;
+        if (typeof next.expanded === 'boolean') state.expanded = next.expanded;
+        if (next.activeTab === 'quota' || next.activeTab === 'accounts') {
+          if (state.activeTab !== next.activeTab) {
+            state.activeTab = next.activeTab;
+            state.confirmSwitchAcc = null;
+          }
+        }
+        if ('payload' in next) state.payload = next.payload;
+        if ('accountsData' in next) state.accountsData = next.accountsData;
+        if ('errorMsg' in next) state.errorMsg = next.errorMsg;
+        if ('actionBanner' in next) state.actionBanner = next.actionBanner;
+        if ('busyAction' in next) state.busyAction = next.busyAction;
+        if (typeof next.maxScrollHeight === 'number') state.maxScrollHeight = next.maxScrollHeight;
+
+        if (VIEW === 'mini') {
+          renderMini();
+        } else {
+          const skipFull = passive || (state.activeTab === 'accounts' && state.confirmSwitchAcc !== null);
+          renderPopover(skipFull);
+        }
+        notifyInteractionState();
+      }
+
+      window.__WIDGET_API__ = {
+        setState(next) {
+          applyState(next);
+          return {
+            view: VIEW,
+            width: lastReportedW,
+            height: lastReportedH,
+          };
+        },
+        refreshTimestamps() {
+          if (VIEW === 'popover') {
+            renderPopover(true);
+          }
+        },
+      };
+
+      // Mini card events
+      if (VIEW === 'mini') {
+        const dockBtn = document.getElementById('dock-btn');
+        dockBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
+        dockBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          postBridge({ type: 'toggleDock' });
+        });
+
+        let dragging = false;
+        let dragMoved = false;
+        let startScreenX = 0;
+        let startScreenY = 0;
+
+        miniSurface.addEventListener('pointerdown', (e) => {
+          if (e.button === 2) return;
+          if (e.button !== 0) return;
+          if (e.target && e.target.closest('#dock-btn')) return;
+          dragging = true;
+          dragMoved = false;
+          startScreenX = e.screenX;
+          startScreenY = e.screenY;
+          try { miniSurface.setPointerCapture(e.pointerId); } catch (_) {}
+          if (state.dock === 'float') {
+            postBridge({ type: 'dragStart' });
+          }
+        });
+
+        miniSurface.addEventListener('pointermove', (e) => {
+          if (!dragging) return;
+          const dx = e.screenX - startScreenX;
+          const dy = e.screenY - startScreenY;
+          if (state.dock === 'float' && (Math.abs(dx) >= 5 || Math.abs(dy) >= 5)) {
+            dragMoved = true;
+          }
+          if (dragMoved) {
+            postBridge({ type: 'dragMove', dx, dy });
+          }
+        });
+
+        function finishPointer(e) {
+          if (!dragging) return;
+          const wasDrag = dragMoved;
+          const dx = e.screenX - startScreenX;
+          const dy = e.screenY - startScreenY;
+          dragging = false;
+          dragMoved = false;
+          try { miniSurface.releasePointerCapture(e.pointerId); } catch (_) {}
+          if (wasDrag) {
+            postBridge({ type: 'dragEnd', dx, dy });
+          } else {
+            postBridge({ type: 'toggleExpand' });
+          }
+        }
+
+        miniSurface.addEventListener('pointerup', finishPointer);
+        miniSurface.addEventListener('pointercancel', finishPointer);
+
+        miniSurface.addEventListener('contextmenu', (e) => {
+          e.preventDefault();
+          postBridge({ type: 'contextMenu' });
+        });
+      } else {
+        document.getElementById('pop-mode-btn').addEventListener('click', () => postBridge({ type: 'toggleMode' }));
+        document.getElementById('pop-refresh-btn').addEventListener('click', () => postBridge({ type: 'refresh' }));
+        document.getElementById('pop-close-btn').addEventListener('click', () => postBridge({ type: 'close' }));
+        document.getElementById('tab-quota').addEventListener('click', () => {
+          if (state.activeTab !== 'quota') {
+            state.activeTab = 'quota';
+            state.confirmSwitchAcc = null;
+            notifyInteractionState();
+            renderPopover();
+            postBridge({ type: 'selectTab', tab: 'quota' });
+          }
+        });
+        document.getElementById('tab-accounts').addEventListener('click', () => {
+          if (state.activeTab !== 'accounts') {
+            state.activeTab = 'accounts';
+            state.confirmSwitchAcc = null;
+            notifyInteractionState();
+            renderPopover();
+            postBridge({ type: 'selectTab', tab: 'accounts' });
+          }
+        });
+
+        popoverSurface.addEventListener('contextmenu', (e) => {
+          e.preventDefault();
+        });
+
+        window.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') {
+            if (state.confirmSwitchAcc !== null) {
+              state.confirmSwitchAcc = null;
+              notifyInteractionState();
+              renderPopover();
+            } else {
+              postBridge({ type: 'close' });
+            }
+          }
+        });
+      }
+
+      document.addEventListener('contextmenu', (e) => e.preventDefault());
+      requestAnimationFrame(() => {
+        reportSize();
+        postBridge({ type: 'ready', view: VIEW });
+      });
+    })();
+  </script>
+</body>
+</html>

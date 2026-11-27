@@ -2,7 +2,7 @@
   "name": "quota-monitor",
   "displayName": "模型用量监控",
   "description": "在边栏与桌面浮窗实时显示当前及全部模型的 5 小时与一周配额用量，并支持本地账号快照与一键切换（同步 agy CLI）。",
-  "version": "1.1.6",
+  "version": "1.2.0",
   "logo": "assets/logo.svg",
   "homepage": "https://github.com/jibunrock40/antigravity-quota-monitor",
   "repository": "https://github.com/jibunrock40/antigravity-quota-monitor"
